@@ -5,7 +5,7 @@
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<!--Import materialize.css-->
 		<link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
-		<title id="title"></title>
+	  	<title id="title">明星大偵探</title>
 		<!--Let browser know website is optimized for mobile-->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<!--Import jQuery before materialize.js-->
@@ -14,102 +14,45 @@
 		<!-- 利用Tabletop.JS讀取Google Sheet https://github.com/jsoma/tabletop -->
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js'></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	
-		<script type='text/javascript'>
-			function GetUrlVar(VarName) 
-			{
-			  name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-			  var regexS = "[\\?&]" + VarName + "=([^&#]*)";
-			  var regex = new RegExp(regexS);
-			  var results = regex.exec(window.location.href);
-			  if (results == null)
-			   	 return "";
-			  else
-				 return results[1];
+		
+		<script>
+		var xmlhttp = new XMLHttpRequest();
+		var url = "https://emma.pixnet.cc/blog/articles/search?key=明星大偵探&format=json&site_category_id=31";
+
+		xmlhttp.onreadystatechange = function() {
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				var myArr = JSON.parse(xmlhttp.responseText);
+				myFunction(myArr);
 			}
-			var s = decodeURIComponent(GetUrlVar('i'));
-			var now = s - 1;
+		}
+		xmlhttp.open("GET", url, true);
+		xmlhttp.send();
 
-			var array = ["明星大偵探第一季節目列表", "明星大偵探第二季節目列表", "明星大偵探第三季節目列表", "明星大偵探第四季節目列表", "明星大偵探第五季節目列表"];
-			document.getElementById("title").innerHTML = array[s - 1];
-			
-			var publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1pyIbzwHCCaIoauGB5uYAA0x-tPYYUKVBFtIWadbo7NU/pubhtml';
-
-			function init() {
-				Tabletop.init( { key: publicSpreadsheetUrl,//
-							 callback: showInfo,
-							 simpleSheet: true } )
+		function myFunction(arr) {
+			var data = arr.articles;
+			var out = "";
+			var i;
+			for (i = 0; i < data.length; i++) {
+				out += '<div class="section row">';
+				if ( data[i].thumb != "" ) out += '<img src="' + data[i].thumb + '" width=100% class="col s12 m3" /><div class="col s12 m9"';
+				if ( data[i].title != "" ) out += '<p><a href="' + data[i].link + '" target="_blank">' + data[i].title + '</a></p>';
+				out += '<p> </p>';
+				if ( data[i].tags.length != 0 )
+				   {
+					out += '<p>Tags: ';
+					out += data[i].tags[0].tag;
+					for (j = 1; j < data[i].tags.length; j++) {
+						out += ', ' + data[i].tags[j].tag;
+					}
+					out += '</p>';
+				   }
+				out += 	'</div></div>'
+						'<div class="divider"></div>';
 			}
-
-			function showInfo(data, tabletop) {
-				console.log(data);
-				var str = "";
-				var index = 0;
-				console.log("s=" + s);
-				for (var i = 0; i < data.length; i += 12) {
-					if(data[i].Season == s) {
-						index = i;
-						break;
-					}
-				}
-				console.log("index=" + index);
-				for (var i = index, t = 0; i < data.length && t < 12; i++, t++) {
-					str += 	'	<div class="col s12 m4 l3">' +
-							'      <div class="card">' +
-							'        <div class="card-image">' +
-							'          <img src="' + data[i].img + '">' +
-							'        </div>' +
-							'        <div class="card-content">' +
-							'          <div class="card-title">' + data[i].Name + '</div>' +
-							'			<p>播出時間：' + data[i].Time + '</p>' +
-							'			<pre><p>案件死者<br>&#9' + data[i].Victim + '</p></pre>' +
-							'        	<p>來賓<br>';
-					var arr_guest = data[i].Guest.split("、");
-					console.log(arr_guest);
-					for (var j = 0; j < arr_guest.length; j++) {
-						if (j != 0)		str+= '、';
-						str += '<a href="https://zh.wikipedia.org/wiki/' + arr_guest[j] + '" target="blank">' + arr_guest[j] + '</a>';
-					}
-							
-					str +=	'			</p>' +
-							'        </div>' +
-							'        <div class="card-action">';
-							
-					var arr_video = data[i].Video.split("、");
-					console.log(arr_video);
-					for (var j = 0; j < arr_video.length; j++) {
-						var num = j + 1;
-						if (arr_video.length == 1){
-							if (arr_video[j] == "無")	str += '<a href="#!">無影片</a>';
-							else	str +=  '<a href="https://www.youtube.com/watch?v='+ arr_video[j] + '&t=' + data[i].Video_time + 's" ' +
-											'target="blank">完整版</a>';
-							break;
-						}
-						else if (arr_video[j] == "無")	break;
-						str += 	'          <a href="https://www.youtube.com/watch?v='+ arr_video[j] + '&t=' + data[i].Video_time + 's" ' +
-								'target="blank">part' + num + '</a>';
-					}
-					if (data[i].Crime == "無")	str += '<a href="#!" class="right">無案件還原</a>';
-					else {
-						str += 	'			<a href="https://www.youtube.com/watch?v='+ data[i].Crime + '&t=' + data[i].Crime_time + 's" ' +
-								'class="right" target="blank">案件還原</a>';
-					}
-					str +=	'        </div>' +
-							'      </div>' +
-							'    </div>';
-				}
-				document.getElementById("info").innerHTML += str;
-			}
-
-			window.addEventListener('DOMContentLoaded', init);
-
-			function change(x) {
-				now = (4 + now + x) % 4 + 1;
-				window.location.href = "season.html?i=" + now;
-			}
-
-
+			document.getElementById("pixnet").innerHTML = out;
+		}
 		</script>
+
 	<head>
 
 	<body class="light-blue lighten-4">
@@ -172,27 +115,22 @@
       			</div>
       		</li>
       		<li class="divider"></li>
-      		<li id="pixnet">
+      		<li id="Pixnet">
       			<a href="pixnet.html"><i class="material-icons">library_books</i>痞客邦文章</a>
       		</li>
 		</ul>
 
 		<nav>
-			<div class="nav-wrapper blue lighten-3">
+			<div class="nav-wrapper blue lighten-3" id="logo">
+				<a class="brand-logo center">痞客邦文章</a>
 			  	<!--Menu-->
 			  	<ul id="nav-mobile" class="left">
 				  	<li>
 				  		<a data-target="sidenav_content" class="sidenav-trigger show-on-large"><i class="material-icons">menu</i></a>
 				  	</li>
-				  	<li>
-			  			<a href="javascript:change(-1)"><i class="material-icons">arrow_back</i></a>
-			  		</li>
 			  	</ul>
 				<!--Home-->
 			  	<ul id="nav-mobile" class="right">
-			  		<li>
-			  			<a href="javascript:change(1)"><i class="material-icons">arrow_forward</i></a>
-			  		</li>
 			  		<li>
 						<a href="info.html" class="show-on-large"><i class="material-icons">info</i></a>
 			  		</li>
@@ -200,12 +138,18 @@
 						<a href="home.html" class="show-on-large"><i class="material-icons">home</i></a>
 			  		</li>
 			  	</ul>
-			  	<a class="brand-logo center" id="logo"></a>
 			</div>
 		</nav>
 
-		<div class="row" id="info"></div>
-		
+		<div class="container row" id="pixnet">
+		</div>
+
+		<div class="fixed-action-btn">
+		  <button class="btn-floating btn-large blue" onclick="toTop()">
+		    <i class="large material-icons">vertical_align_top</i>
+		  </button>
+		</div>
+
 		<footer class="page-footer blue darken-3">
           <div class="container">
             <div class="row">
@@ -237,13 +181,15 @@
         <script type="text/javascript">
         	$(document).ready(function(){
 				$('.sidenav').sidenav();
-				$('.collapsible').collapsible()
-				$('.carousel.carousel-slider').carousel({
-				    indicators: true
-				});
+				$('.collapsible').collapsible();
+				$('.fixed-action-btn').floatingActionButton();
 			});
-			document.getElementById("logo").innerHTML +=  array[s - 1];
-    		document.getElementById("season_list").innerHTML = '<a class="grey-text text-lighten-3" href="https://zh.wikipedia.org/wiki/' + array[s - 1] + '" target="blank">' + array[s - 1] + '</a>';
+
+			function toTop() {
+				$('html, body').animate({
+					scrollTop: 0
+				}, 200);
+			}
         </script>
 	</body>
 </html>
